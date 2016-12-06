@@ -1,0 +1,28 @@
+.inactiveLink {
+   pointer-events: none;
+   cursor: default;
+}
+body {
+    background-color: skyblue;
+}
+
+canvas {
+    border: 1px solid blue;
+    text-align-last: center;
+}
+
+p {
+    text-align: justify;
+}
+
+#controls {
+    text-align-last: right;
+}
+h2 {
+    text-align-last: center;
+}
+
+#controls > #submit{
+    width:auto;
+    margin-right:40%;
+}

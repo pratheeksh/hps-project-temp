@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="public/javascripts/socket.io.js"></script>
+<script>
+  var socket = io('http://localhost:10000');
+  socket.emit('room', 'hollaola');
+
+  socket.on('broadcast', function (data) {
+    console.log(data);
+  });
+</script>
+</head>
+<body>
+
+</body>
