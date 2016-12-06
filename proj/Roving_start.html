@@ -6,7 +6,9 @@
     <meta name="googlebot" content="noindex, nofollow">
     <script type="text/javascript" src="jquery-1.9.1.js"></script>
     <link rel="stylesheet" type="text/css" href="css/result-light.css">
-    <title>Roving test by dt1295</title>
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+
+    <title>Save Roving!</title>
 
 
     <script type='text/javascript'>
@@ -14,7 +16,8 @@
         var mineCount, maxMines, maxRoverCount, gridSize, mineX, mineY, canvas, ctx, canvasOffset,
                 offsetX, offsetY;
 
-
+        var moveCount = 0;
+        var moveCountDisplay;
         var roverCount = 1;
         // animation variables
         var roverX = [0];
@@ -69,13 +72,14 @@
 
 
         var selected = 0;
-        var background = new Image();
+        //var background = new Image();
+        //        var phase = 0;
 
-        function loadBackground(ctx) {
-            return function () {
-                ctx.drawImage(background, 0, 0, gridSize, gridSize);
-            };
-        }
+        /*function loadBackground(ctx) {
+         return function () {
+         ctx.drawImage(background, 0, 0, gridSize, gridSize);
+         };
+         }*/
         function loadMothership(ctx) {
             return function () {
                 ctx.drawImage(mothershipRight, 0, 0, 40, 40);
@@ -92,11 +96,23 @@
 
         var roverDirection = [0]; // 0 - right, 1 - top, 2 - left, 3 - bot
 
-
+        function drawBackground(context) {
+            for (var x = 0; x <= gridSize; x += 40) {
+                context.moveTo(x, 0);
+                context.lineTo(x, gridSize);
+            }
+            for (var x = 0; x <= gridSize; x += 40) {
+                context.moveTo(0, x);
+                context.lineTo(gridSize, x);
+            }
+            context.strokeStyle = "black";
+            context.stroke();
+        }
         function draw(x, y, i, phase) {
             if (phase == 0) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(background, 0, 0, gridSize, gridSize);
+                //ctx.drawImage(background, 0, 0, gridSize, gridSize);
+                drawBackground(ctx);
                 ctx.drawImage(mothershipRight, 0, 0, 40, 40);
                 for (var c = 0; c < mineCount; c++) {
                     ctx.drawImage(mine, mineX[c], mineY[c], 40, 40);
@@ -104,14 +120,16 @@
             }
             if (phase == 1) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(background, 0, 0, gridSize, gridSize);
+                drawBackground(ctx);
+
+                //ctx.drawImage(background, 0, 0, gridSize, gridSize);
                 if (i == 1000000) {
-                    console.log("finish");
+//                    console.log("finish");
                     ctx.drawImage(finish, x, y, 40, 40);
                     return;
                 }
                 for (var d = 0; d < expCount; d++) {
-                    console.log("EXPLOSION!", expX[d], expY[d]);
+//                    console.log("EXPLOSION!", expX[d], expY[d]);
                     ctx.drawImage(explosion, expX[d], expY[d], 40, 40);
 
                 }
@@ -281,14 +299,14 @@
             for (var i = 0; i < edgeMines.length; i++) {
                 var curMine = edgeMines[i];
                 var reachableMines = getReachableMines(curMine);
-                console.log("reachableMines", edgeMines[i], reachableMines);
+//                console.log("reachableMines", edgeMines[i], reachableMines);
                 //For each mine in the reachable mines, check if it is also edge mine. If so, check if it is a conflicting edge mine.
                 for (var j = 0; j < reachableMines.length; j++) {
                     var index = edgeMines.indexOf(reachableMines[j]);
-                    console.log("index", index);
+//                    console.log("index", index);
                     if (index > -1) {
                         var endMine = reachableMines[j];
-                        console.log("the conflicting mines are ", curMine, endMine, isConflictingMine(curMine, endMine));
+//                        console.log("the conflicting mines are ", curMine, endMine, isConflictingMine(curMine, endMine));
                         if (isConflictingMine(curMine, endMine) == true) {
                             deleteMine(mineCount - 1);
                             return false;
@@ -362,9 +380,14 @@
             for (var c = 0; c < mineCount; c++) {
                 if (mouseX > mineX[c] && mouseX < mineX[c] + 40
                         && mouseY > mineY[c] && mouseY < mineY[c] + 40) {
+                    //Delete this mine!
                     deleteMine(c);
                     draw(0, 0, roverCount + 1, 0);
+//                    for (var d = 0; d < mineCount; d++) {
+//                        console.log("mineAdjMatrix[d]", d, mineAdjMatrix[d]);
+//                    }
 
+                    //  return;
                 }
             }
             xLoc = mouseX - (mouseX % 40);
@@ -376,7 +399,6 @@
                 if (mineCount == maxMines) {
 
                     allMines = mineX.concat(mineY);
-                    console.log(maxRoverCount);
                     socket.emit('mines', allMines, room);
                     return;
                 }
@@ -386,16 +408,6 @@
         }
 
         function handleLeftClickHelper(mouseX, mouseY) {
-            if (mouseX > gridSize - 40 && mouseY > gridSize - 40 && (mouseX > roverX[0] && mouseX < roverX[0] + 40
-                    && mouseY > roverY[0] && mouseY < roverY[0] + 40)) {
-                console.log("finish click phase 1");
-
-                xLoc = mouseX - (mouseX % 40);
-                yLoc = mouseY - (mouseY % 40);
-                draw(xLoc, yLoc, 1000000, 1);
-                //alert("you win")
-                return;
-            }
             for (var c = 0; c < roverCount; c++) {
                 if (roverDead[c] == 1) {
                     continue;
@@ -433,7 +445,21 @@
                 draw(xLoc, yLoc, selected, 1);
                 roverX[selected] = xLoc;
                 roverY[selected] = yLoc;
+                moveCount++;
+                $(moveCountDisplay).html("Moves so far : " + moveCount);
+
             }
+            if (mouseX > gridSize - 40 && mouseY > gridSize - 40 && (mouseX > roverX[0] && mouseX < roverX[0] + 40
+                    && mouseY > roverY[0] && mouseY < roverY[0] + 40)) {
+//                console.log("finish click phase 1");
+
+                xLoc = mouseX - (mouseX % 40);
+                yLoc = mouseY - (mouseY % 40);
+                draw(xLoc, yLoc, 1000000, 1);
+                //alert("you win")
+                return;
+            }
+
         }
 
         function handleClickPhase1(e, room, socket) {
@@ -547,14 +573,23 @@
             socket.emit('room', room);
 
             socket.on('phase', function (data) {
-                console.log("phase " + data);
+//                console.log("phase " + data);
 
                 var phase = parseInt(data);
-                var playerIdDisplay = document.createElement("p");
+                var playerIdDisplay = document.createElement("h4");
+                moveCountDisplay = document.createElement("h4");
+
                 playerIdDisplay.id = "playerIdDisplay";
+                moveCountDisplay.id = "moveCountDisplay";
+                playerIdDisplay.class = "text-primary";
+                moveCountDisplay.class = "text-primary";
                 $(playerIdDisplay).html(" You are player " + (phase + 1));
-                var div = document.getElementById("controls");
+                $(moveCountDisplay).html("Moves so far : " + moveCount);
+
+                var div = document.getElementById("RightPane");
                 div.appendChild(playerIdDisplay);
+                div.appendChild(moveCountDisplay);
+
 
                 if (phase == 0) {
                     startGame(0, room, socket);
@@ -564,7 +599,7 @@
             });
             socket.on('mines', function (data, phase) {
 
-                console.log(data);
+//                console.log(data);
                 mineX = data.slice(0, maxRoverCount);
                 mineY = data.slice(maxRoverCount, data.length);
                 mineCount = mineX.length;
@@ -575,7 +610,7 @@
             });
             socket.on('draw', function (x, y, type) {
                 if (type == 1) {
-                    console.log(x, y, type);
+//                    console.log(x, y, type);
                     handleLeftClickHelper(x, y, type)
 
                 } else {
@@ -595,15 +630,15 @@
             // If x is Not a Number or less than one or greater than 10
             if (isValidInput(maxRoverCount) && isValidInput(gridSize)) {
                 gridSize = gridSize * 40;
+
+
                 canvas = document.createElement("canvas");
                 canvas.id = "canvas";
                 canvas.width = gridSize;
                 canvas.height = gridSize;
-                canvas.style.position = "relative";
-//                canvas.style.border = "1px solid";
-                canvas.align = "center";
-                var div = document.getElementById("wrapper");
+                var div = document.getElementById("inner");
                 div.appendChild(canvas);
+
                 document.getElementById("submit").disabled = true;
                 document.getElementById("rover-count").disabled = true;
                 document.getElementById("grid-size").disabled = true;
@@ -612,8 +647,8 @@
                 canvasOffset = $("#canvas").offset();
                 offsetX = canvasOffset.left;
                 offsetY = canvasOffset.top;
-                background.onload = loadBackground(ctx);
-                background.src = "http://i.dailymail.co.uk/i/pix/2012/08/24/article-2192780-14AB3C4C000005DC-62_634x417.jpg";
+
+                drawBackground(ctx);
                 mothershipRight.onload = loadMothership(ctx);
                 mothershipRight.src = "img/mothership_right.png";
 
@@ -624,7 +659,7 @@
         }
 
         function isValidInput(x) {
-            if (isNaN(x) || x < 1 || x > 20) {
+            if (isNaN(x) || x < 1 || x > 15) {
                 return false;
             } else {
                 return true;
@@ -641,7 +676,7 @@
                         (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
             }
             var room = window.location.hash;
-            console.log("Room id = " + room.toString());
+//            console.log("Room id = " + room.toString());
             document.getElementById('room-id').value = room.toString()
         });
 
@@ -652,37 +687,42 @@
 </head>
 
 <body>
-<p>Click to move the rectangle to the mouseclick</p>
-<p id="downlog">Down</p>
-<p id="downlog1">Rightclick : </p>
+
+<div id="topTitle">
+    <h1>Safe Roving</h1>
+    <br>
+    <br>
+</div>
+<div class="wrapper" id="wrapper" style="margin: auto; width: 95%; position: absolute;">
+    <div id="outer" style="text-align: center; position:absolute; width:65%">
+        <div id="inner" style="display: inline-block;">
+        </div>
+    </div>
 
 
-<div class="wrapper" id="wrapper" style="margin: 0 auto; width: 1500px; position: absolute;">
-
-
-    <div class="controls" id="controls" style="position: absolute; top:0; left: 810px;">
+    <div class="form-group" id="RightPane" style="position: absolute; top:0; left: 70%;">
 
         <h2>Controls</h2>
 
-        Enter the number of bombs/rovers: <input type="text" id="rover-count" value="5" required><br>
+        Enter the number of bombs/rovers: <input type="text" id="rover-count" value="5" class="form-control"
+                                                 required><br>
         <br>
-        Enter the size of the square grid: <input type="text" id="grid-size" value="20" required><br>
+        Enter the size of the square grid: <input type="text" id="grid-size" value="7" class="form-control"
+                                                  required><br>
         <br>
-        <p>Paste the room id in this field or ask your opponent to do so.</p>
+        Paste the room id in this field or ask your opponent to do so. <br>
 
-        <label for="room-id" class="room-id-label">Room id</label><input type="text" id="room-id" class="room-id">
+        <label for="room-id" class="room-id-label">Room id: </label><input type="text" id="room-id"
+                                                                           class="form-control">
         <br><br>
-c
-        <button type="button" id="submit" onclick="verifyAndStart()">Submit</button>
+
+        <button type="button" id="submit" class="btn btn-primary" onclick="verifyAndStart()">Submit</button>
 
 
         <br><br>
 
     </div>
 
-    <div class="controls" id="progress" style="position: absolute; top:100px; left: 810px;">
-
-    </div>
 
 </div>
 
