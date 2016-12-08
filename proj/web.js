@@ -1,7 +1,8 @@
 /**
  * Created by pratheeksha on 12/4/16.
  */
-var app = require('express')();
+var express = require('express');
+var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var port = 10000;
@@ -56,6 +57,9 @@ io.on('connection', function (socket) {
 app.get('/', function (req, res) {
     res.sendfile(__dirname + '/Roving_start.html');
 });
+app.use(express.static(__dirname + '/'));
+
+
 server.listen(port, function () {
     console.log('Express server listening on %s', port);
 });

@@ -566,12 +566,12 @@
         }//]]>
 
     </script>
-    <script src="public/javascripts/socket.io.js"></script>
+    <script src="http://linserv1.cims.nyu.edu:10000/public/javascripts/socket.io.js"></script>
 
     <script>
 
         function establishSocketConn(room, maxRoverCount) {
-            var socket = io('http://localhost:10000');
+            var socket = io('http://linserv1.cims.nyu.edu:10000');
             socket.emit('room', room);
 
             socket.on('phase', function (data) {
@@ -679,7 +679,7 @@
             }
             var room = window.location.hash;
 //            console.log("Room id = " + room.toString());
-            document.getElementById('room-id').value = room.toString()
+            document.getElementById('room-id').value = room.toString();
         });
 
 
